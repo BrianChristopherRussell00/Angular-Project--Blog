@@ -6,6 +6,7 @@ import { BlogPost } from '../models/blog-post.model';
 import { CategoryService } from '../../Services/category.service';
 import { Category } from '../../Models/category.model';
 import { UpdateBlogPost } from '../../Models/update-blogpost.components';
+import { ImageService } from 'src/app/shared/components/image.service';
 
 @Component({
   selector: 'app-edit-blogpost',
@@ -17,15 +18,19 @@ export class EditBlogpostComponent implements OnInit, OnDestroy {
    model?: BlogPost 
     categories$? : Observable<Category[]>;
     selectedCategories?: string[];
+    isImageSelectorVisible: boolean = false;
+    
     routeSubscription?: Subscription
     updateBlogPostSubscription?: Subscription;
         getBlogPostSubscription?: Subscription;
         deleteBlogPostSubscription?: Subscription;
+        imageSelectSubscription?: Subscription;
 
     constructor(private route: ActivatedRoute,
     private blogPostService: BlogPostService,
   private categoryService: CategoryService,
-private router: Router ){
+private router: Router,
+private imageService: ImageService ){
 
   }
   
@@ -48,7 +53,19 @@ this.selectedCategories = response.categories.map(x => x.id);
   }
  })
 ;
-}}
+}
+
+this.imageSelectSubscription = this.imageService.onSelectImage()
+.subscribe({
+  next: (response) => {
+    if (this.model){
+      this.model.featuredImageUrl = response.url;
+      this.isImageSelectorVisible = false;
+    }
+  }
+})
+
+}
 });
   }
 
@@ -83,14 +100,29 @@ this.deleteBlogPostSubscription =   this.blogPostService.deleteBlogPost(this.id)
       this.router.navigateByUrl('/admin/blogposts');
       }  }
   );
+
+
+
 }
+
   }
+
+  openImageSelctor(): void{
+  this.isImageSelectorVisible = true;
+}
+
+closeImageSelector(): void{
+  this.isImageSelectorVisible = false;
+
+}
+
 
 ngOnDestroy(): void {
     this.routeSubscription?.unsubscribe();
     this.updateBlogPostSubscription?.unsubscribe();
     this.getBlogPostSubscription?.unsubscribe();
     this.deleteBlogPostSubscription?.unsubscribe();
+    this.imageSelectSubscription?.unsubscribe();
   }
 
 }
